@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.5/css/select.bootstrap.min.css"/>
+    <style>
+        table input{
+            color: #000000;
+        }
+    </style>
+</head>
+<body>
+    
+    <div style="width:100%;padding: 5rem;">
+        <table id="example" class="table table-border" style="width:100%"></table>
+        <button type="button" id="allselected">Todos los Seleccionados</button>
+    </div>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/select/1.2.5/js/dataTables.select.min.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            $dataTable = $('#example').DataTable( {
+                ajax: '/arrays.json',
+                columns: [
+                    {
+                        data: null,
+                        orderable: false,
+                        className: 'select-checkbox',
+                        defaultContent : ""
+                    },
+                    { "data": "name", title:"name" },
+                    { "data": "position", title:"position" },
+                    { "data": "office", title:"office" },
+                    { "data": "extn", title:"extn" },
+                    { "data": "start_date", title:"start_date" },
+                    { "data": "salary", title:"salary" },
+                    { 
+                        "data":"cant", 
+                        title:"cant.",
+                        render:function(data){
+                            return`<input type='text' value='${data ? data:""}' ${data ? "":"disabled"}/>`
+                        }
+                    }
+                ],select: {
+                    style:'multi',
+                    selector: 'td:first-child'
+                },order: [[ 1, 'asc' ]]
+            }).on( 'select', function ( e, dt, type, indexes ) {
+                const $this = $(this);
+                if ( type === 'row' ) {
+                    const $tr = $dataTable.rows(indexes).nodes().to$();
+                    var newdate = $dataTable.rows(indexes).data()
+                    newdate[0].cant = 1;
+                    $dataTable.rows(indexes).data(newdate).draw();
+                    const $input = $tr.find("td>input");
+                    $input.val("1").prop("disabled", false);
+                }
+            }).on( 'deselect', function ( e, dt, type, indexes ) {
+                const $this = $(this);
+                if ( type === 'row' ) {
+                    const $tr = $dataTable.rows(indexes).nodes().to$();
+                    var newdate = $dataTable.rows(indexes).data()
+                    newdate[0].cant = 0;
+                    $dataTable.rows(indexes).data(newdate).draw();
+                    const $input = $tr.find("td>input");
+                    $input.val("").prop("disabled", true);
+                }
+            });
+
+            $('#example').on("change","input",function(){
+                const $this = $(this);
+                const $tr = $this.parents("tr");
+                var newdate = $dataTable.row($tr).data()
+                newdate.cant = $this.val();
+                $dataTable.row($tr).data(newdate).draw();
+            })
+
+            $("#allselected").on("click",function(){
+                console.log($dataTable.rows('.selected').data())
+            });
+        })
+    </script>
+</body>
+</html>
